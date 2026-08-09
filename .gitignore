@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Streamlit secrets: GitHub에 올리지 않음
+.streamlit/secrets.toml
+
+# ERP 원본 및 임시 엑셀: 앱 화면에서 직접 업로드
+*.xlsx
+*.xls
+~$*
+sample_data/
+
+# Local editor / OS files
+.env
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
