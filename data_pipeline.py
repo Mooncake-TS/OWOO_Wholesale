@@ -491,6 +491,15 @@ def build_purchase_decision(
     if purchases is not None and not purchases.empty:
         reference_frames.append(purchases.loc[purchases["아레나분류가능"]].copy())
     references = pd.concat(reference_frames, ignore_index=True, sort=False)
+    # Streamlit에 이전 스키마로 캐시된 데이터가 남아 있어도 정렬키를 복원한다.
+    if "생산연도정렬" in references.columns:
+        year_sort = pd.to_numeric(references["생산연도정렬"], errors="coerce")
+    else:
+        year_sort = pd.Series(pd.NA, index=references.index, dtype="Float64")
+    year_sort = year_sort.fillna(
+        pd.to_numeric(references["생산연도"], errors="coerce")
+    )
+    references["생산연도정렬"] = year_sort.fillna(-1).astype("Int64")
     references = references.sort_values(
         ["통합SKU키", "생산연도정렬", "상품코드"], na_position="first"
     )
