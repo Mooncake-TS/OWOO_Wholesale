@@ -42,18 +42,23 @@ def main() -> None:
                 "A1AC1AC01",
                 "A2AC1AC01",
                 "A3AC1AC01",
+                "AYAC1AC01",
+                "AVAC1AC01",
+                "AZAC1AC01",
                 "A1AB1AC01",
                 "A1AC2AC01",
-                "AYAL1CO02",
+                "BYAL1CO02",
             ]
         }
     )
     classified_examples = add_product_classification(code_examples)
-    assert classified_examples.loc[0:2, "통합상품키"].nunique() == 1
+    assert classified_examples.loc[0:5, "통합상품키"].nunique() == 1
     assert classified_examples.loc[0, "통합상품키"] == "A|AC|1|AC01"
-    assert classified_examples.loc[3, "통합상품키"] != classified_examples.loc[0, "통합상품키"]
-    assert classified_examples.loc[4, "통합상품키"] != classified_examples.loc[0, "통합상품키"]
-    assert not bool(classified_examples.loc[5, "아레나분류가능"])
+    assert classified_examples.loc[0:2, "생산연도"].tolist() == ["2021", "2022", "2023"]
+    assert classified_examples.loc[3:5, "생산연도"].eq("기타연도").all()
+    assert classified_examples.loc[6, "통합상품키"] != classified_examples.loc[0, "통합상품키"]
+    assert classified_examples.loc[7, "통합상품키"] != classified_examples.loc[0, "통합상품키"]
+    assert not bool(classified_examples.loc[8, "아레나분류가능"])
 
     warehouse_examples = pd.DataFrame(
         {"창고명": ["총판", "테마", "온라인", " 총판 ", None]}
