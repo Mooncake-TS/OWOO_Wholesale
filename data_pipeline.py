@@ -76,7 +76,7 @@ SPECS: dict[SourceKind, SourceSpec] = {
 }
 
 
-ARENA_CODE_PATTERN = r"^A(?P<생산연도코드>[0-9])(?P<대분류>[A-Z]{2})(?P<생산구분코드>[12])(?P<핵심코드>[A-Z0-9]{4})$"
+ARENA_CODE_PATTERN = r"^A(?P<생산연도코드>[0-9A-Z])(?P<대분류>[A-Z]{2})(?P<생산구분코드>[12])(?P<핵심코드>[A-Z0-9]{4})$"
 
 
 def _rewind(source: ExcelSource) -> None:
@@ -180,9 +180,13 @@ def add_product_classification(frame: pd.DataFrame) -> pd.DataFrame:
 
     result["아레나분류가능"] = classified
     result["생산연도코드"] = parsed["생산연도코드"].fillna("")
-    result["생산연도"] = (
+    production_year = (
         pd.to_numeric(parsed["생산연도코드"], errors="coerce") + 2020
     ).astype("Int64")
+    result["생산연도정렬"] = production_year.fillna(-1).astype("Int64")
+    result["생산연도"] = production_year.astype("string")
+    result.loc[classified & production_year.isna(), "생산연도"] = "기타연도"
+    result.loc[~classified, "생산연도"] = ""
     result["대분류"] = parsed["대분류"].fillna("")
     result["생산구분코드"] = parsed["생산구분코드"].fillna("")
     result["생산구분"] = result["생산구분코드"].map(
@@ -488,7 +492,7 @@ def build_purchase_decision(
         reference_frames.append(purchases.loc[purchases["아레나분류가능"]].copy())
     references = pd.concat(reference_frames, ignore_index=True, sort=False)
     references = references.sort_values(
-        ["통합SKU키", "생산연도", "상품코드"], na_position="first"
+        ["통합SKU키", "생산연도정렬", "상품코드"], na_position="first"
     )
     latest_reference = (
         references.groupby("통합SKU키", dropna=False).tail(1)[
