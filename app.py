@@ -98,7 +98,11 @@ def _comparison_chart(
                 "월:O",
                 title="월",
                 sort=list(range(1, 13)),
-                axis=alt.Axis(labelExpr="datum.label + '월'"),
+                axis=alt.Axis(
+                    labelExpr="datum.label + '월'",
+                    labelAngle=0,
+                    labelOverlap=False,
+                ),
             ),
             y=alt.Y(
                 f"{value_label}:Q",
@@ -215,8 +219,30 @@ def _comparison_tab(
         )
 
     with st.expander("월별 비교표 보기"):
+        table_columns = [
+            f"{analysis_year - 1} 수량",
+            f"{analysis_year} 수량",
+            "수량 차이",
+            "수량 변화율",
+            f"{analysis_year - 1} 금액",
+            f"{analysis_year} 금액",
+            "금액 차이",
+            "금액 변화율",
+        ]
         st.dataframe(
-            monthly.style.format("{:,.0f}"),
+            monthly[table_columns].style.format(
+                {
+                    f"{analysis_year - 1} 수량": "{:,.0f}",
+                    f"{analysis_year} 수량": "{:,.0f}",
+                    "수량 차이": "{:+,.0f}",
+                    "수량 변화율": "{:+.1%}",
+                    f"{analysis_year - 1} 금액": "{:,.0f}",
+                    f"{analysis_year} 금액": "{:,.0f}",
+                    "금액 차이": "{:+,.0f}",
+                    "금액 변화율": "{:+.1%}",
+                },
+                na_rep="-",
+            ),
             width="stretch",
         )
 
