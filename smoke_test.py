@@ -85,6 +85,14 @@ def main() -> None:
         start_month=2,
         end_month=6,
     )
+    legacy_cache_decision = build_purchase_decision(
+        inventory.drop(columns=["생산연도정렬"]),
+        sales.drop(columns=["생산연도정렬"]),
+        purchases=purchases.drop(columns=["생산연도정렬"]),
+        analysis_year=2026,
+        start_month=2,
+        end_month=6,
+    )
     sales_2025, sales_2024, _ = same_period_frames(
         sales, 2025, start_month=2, end_month=6
     )
@@ -113,6 +121,8 @@ def main() -> None:
     assert inventory_only_decision["분석기간판매"].eq(0).all()
     assert inventory_only_decision["제안발주수량"].eq(0).all()
     assert decision_2026["제안발주품번"].str.startswith("A6").all()
+    assert not legacy_cache_decision.empty
+    assert legacy_cache_decision["제안발주품번"].str.startswith("A6").all()
     assert sales_2025["월"].between(2, 6).all()
     assert sales_2024.empty or sales_2024["월"].between(2, 6).all()
     assert monthly_sales["월"].tolist() == [2, 3, 4, 5, 6]
