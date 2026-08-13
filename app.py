@@ -30,8 +30,12 @@ st.set_page_config(
 )
 
 
+UPLOAD_CACHE_SCHEMA_VERSION = "2026-08-13-production-year-v2"
+
+
 @st.cache_data(show_spinner=False)
-def _load_uploaded(file_bytes: bytes, kind: str):
+def _load_uploaded(file_bytes: bytes, kind: str, schema_version: str):
+    del schema_version  # 캐시 키 갱신용 버전값
     source = BytesIO(file_bytes)
     if kind == "sales":
         return load_sales(source)
@@ -46,7 +50,9 @@ def _read_upload(uploaded_file, kind: str):
     if uploaded_file is None:
         return None, None, None
     try:
-        frame, meta = _load_uploaded(uploaded_file.getvalue(), kind)
+        frame, meta = _load_uploaded(
+            uploaded_file.getvalue(), kind, UPLOAD_CACHE_SCHEMA_VERSION
+        )
         return frame, meta, None
     except (SchemaError, ValueError, KeyError) as error:
         return None, None, str(error)
