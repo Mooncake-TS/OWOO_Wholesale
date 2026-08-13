@@ -397,7 +397,21 @@ def monthly_comparison(
                 f"{analysis_year - 1} 금액": float(previous_month[amount_column].sum()),
             }
         )
-    return pd.DataFrame(rows)
+    result = pd.DataFrame(rows)
+    previous_quantity = result[f"{analysis_year - 1} 수량"]
+    current_quantity = result[f"{analysis_year} 수량"]
+    previous_amount = result[f"{analysis_year - 1} 금액"]
+    current_amount = result[f"{analysis_year} 금액"]
+
+    result["수량 차이"] = current_quantity - previous_quantity
+    result["수량 변화율"] = np.where(
+        previous_quantity.ne(0), current_quantity / previous_quantity - 1, np.nan
+    )
+    result["금액 차이"] = current_amount - previous_amount
+    result["금액 변화율"] = np.where(
+        previous_amount.ne(0), current_amount / previous_amount - 1, np.nan
+    )
+    return result
 
 
 def build_inventory_group_summary(inventory: pd.DataFrame) -> pd.DataFrame:
