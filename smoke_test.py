@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 from data_pipeline import (
+    _wholesale_warehouse_mask,
     add_product_classification,
     build_inventory_group_summary,
     build_purchase_decision,
@@ -54,6 +55,17 @@ def main() -> None:
     assert classified_examples.loc[4, "통합상품키"] != classified_examples.loc[0, "통합상품키"]
     assert not bool(classified_examples.loc[5, "아레나분류가능"])
 
+    warehouse_examples = pd.DataFrame(
+        {"창고명": ["총판", "테마", "온라인", " 총판 ", None]}
+    )
+    assert _wholesale_warehouse_mask(warehouse_examples, "창고명").tolist() == [
+        True,
+        False,
+        False,
+        True,
+        False,
+    ]
+
     sales, sales_meta = load_sales(SAMPLE_DIR / "25~26 총판 매장출고반품현황_작업용.xlsx")
     purchases, purchase_meta = load_purchases(SAMPLE_DIR / "25~26 총판 상품입고반품현황_작업용.xlsx")
     inventory, inventory_meta = load_inventory(SAMPLE_DIR / "26년1월1일 총판 창고재고현황.xlsx")
@@ -83,6 +95,9 @@ def main() -> None:
     assert sales_meta.clean_rows == len(sales)
     assert purchase_meta.clean_rows == len(purchases)
     assert inventory_meta.clean_rows == len(inventory)
+    assert sales["창고"].astype("string").str.strip().eq("총판").all()
+    assert purchases["창고명"].astype("string").str.strip().eq("총판").all()
+    assert inventory["창고명"].astype("string").str.strip().eq("총판").all()
     assert sales["분석일자"].notna().all()
     assert purchases["분석일자"].notna().all()
     assert not decision.empty
