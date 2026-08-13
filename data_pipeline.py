@@ -43,7 +43,16 @@ class SchemaError(ValueError):
 SPECS: dict[SourceKind, SourceSpec] = {
     "sales": SourceSpec(
         label="매장 출고·반품",
-        required_columns=("구분", "일자", "상품코드", "칼라", "사이즈", "수량", "출고가금액"),
+        required_columns=(
+            "구분",
+            "일자",
+            "창고",
+            "상품코드",
+            "칼라",
+            "사이즈",
+            "수량",
+            "출고가금액",
+        ),
         signature_columns=("매장명", "매장코드", "전표번호", "상품명", "현재가"),
     ),
     "purchases": SourceSpec(
@@ -156,6 +165,12 @@ def _key_part(series: pd.Series) -> pd.Series:
     return result.str.replace(r"\.0$", "", regex=True)
 
 
+def _wholesale_warehouse_mask(frame: pd.DataFrame, column: str) -> pd.Series:
+    """창고명이 정확히 '총판'인 상세행만 선택한다."""
+    warehouse = frame[column].astype("string").fillna("").str.strip()
+    return warehouse.eq("총판")
+
+
 def add_product_classification(frame: pd.DataFrame) -> pd.DataFrame:
     """아레나 9자리 품번을 생산연도를 제외한 상품군으로 분류한다."""
     result = frame.copy()
@@ -233,6 +248,7 @@ def load_sales(source: ExcelSource) -> tuple[pd.DataFrame, LoadMeta]:
     valid = (
         frame["분석일자"].notna()
         & transaction_type.str.contains("출고|반품", regex=True)
+        & _wholesale_warehouse_mask(frame, "창고")
         & product_code.ne("")
         & ~product_code.str.contains("소계|합계", regex=True)
     )
@@ -270,6 +286,7 @@ def load_purchases(source: ExcelSource) -> tuple[pd.DataFrame, LoadMeta]:
     valid = (
         frame["분석일자"].notna()
         & transaction_type.str.contains("입고|반품", regex=True)
+        & _wholesale_warehouse_mask(frame, "창고명")
         & product_code.ne("")
         & ~product_code.str.contains("소계|합계", regex=True)
     )
@@ -306,6 +323,7 @@ def load_inventory(source: ExcelSource) -> tuple[pd.DataFrame, LoadMeta]:
     valid = (
         product_code.ne("")
         & quantity.notna()
+        & _wholesale_warehouse_mask(frame, "창고명")
         & ~product_code.str.contains("소계|합계", regex=True)
     )
     if "No" in frame.columns:
