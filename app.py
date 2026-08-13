@@ -31,6 +31,8 @@ st.set_page_config(
 
 
 UPLOAD_CACHE_SCHEMA_VERSION = "2026-08-13-production-year-v2"
+PREVIOUS_YEAR_COLOR = "#A9D6F5"
+CURRENT_YEAR_COLOR = "#1565C0"
 
 
 @st.cache_data(show_spinner=False)
@@ -103,7 +105,14 @@ def _comparison_chart(
                 title=value_label,
                 axis=alt.Axis(format=",.0f"),
             ),
-            color=alt.Color("구분:N", title=None),
+            color=alt.Color(
+                "구분:N",
+                title=None,
+                scale=alt.Scale(
+                    domain=columns,
+                    range=[PREVIOUS_YEAR_COLOR, CURRENT_YEAR_COLOR],
+                ),
+            ),
             tooltip=[
                 alt.Tooltip("월:O", title="월"),
                 alt.Tooltip("구분:N", title="구분"),
