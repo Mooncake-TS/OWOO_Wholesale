@@ -126,6 +126,17 @@ def main() -> None:
     assert sales_2025["월"].between(2, 6).all()
     assert sales_2024.empty or sales_2024["월"].between(2, 6).all()
     assert monthly_sales["월"].tolist() == [2, 3, 4, 5, 6]
+    assert {"수량 차이", "수량 변화율", "금액 차이", "금액 변화율"}.issubset(
+        monthly_sales.columns
+    )
+    assert (
+        monthly_sales["수량 차이"]
+        == monthly_sales["2025 수량"] - monthly_sales["2024 수량"]
+    ).all()
+    assert (
+        monthly_sales["금액 차이"]
+        == monthly_sales["2025 금액"] - monthly_sales["2024 금액"]
+    ).all()
 
     print(f"sales={sales_meta}")
     print(f"purchases={purchase_meta}")
